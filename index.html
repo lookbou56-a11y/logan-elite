@@ -1,44 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Logan Elite</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: black;
-      color: white;
-      text-align: center;
-    }
-    h1 {
-      font-size: 40px;
-      margin-top: 50px;
-      color: cyan;
-    }
-    p {
-      font-size: 18px;
-      opacity: 0.8;
-    }
-    .btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 12px 25px;
-      background: cyan;
-      color: black;
-      text-decoration: none;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logan Elite</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: black;
+  color: white;
+  text-align: center;
+}
+
+.container {
+  margin-top: 100px;
+}
+
+input {
+  display: block;
+  margin: 10px auto;
+  padding: 10px;
+  width: 250px;
+  border-radius: 5px;
+  border: none;
+}
+
+button {
+  padding: 12px 25px;
+  background: cyan;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
+#main {
+  display: none;
+}
+
+h1 {
+  color: cyan;
+}
+</style>
 </head>
+
 <body>
 
-  <h1>LOGAN ELITE 🚀</h1>
+<!-- LOGIN -->
+<div class="container" id="login">
+  <h1>Logan Elite 🔐</h1>
+  <input type="text" id="user" placeholder="Username">
+  <input type="password" id="pass" placeholder="Password">
+  <button onclick="login()">Sign In</button>
+</div>
+
+<!-- MAIN SITE -->
+<div id="main">
+  <h1>WELCOME TO LOGAN ELITE 🚀</h1>
   <p>Elite digital system • Built in silence</p>
 
-  <a class="btn" href="https://wa.me/YOURNUMBER">Contact Me</a>
+  <a href="https://wa.me/231887935222?text=Hello%20Logan%2C%20I%20just%20logged%20in" target="_blank">
+    <button>Contact Me</button>
+  </a>
+</div>
+
+<script>
+function login() {
+  var u = document.getElementById("user").value;
+  var p = document.getElementById("pass").value;
+
+  if(u === "logan" && p === "1234") {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("main").style.display = "block";
+  } else {
+    alert("Wrong login");
+  }
+}
+</script>
 
 </body>
 </html>
