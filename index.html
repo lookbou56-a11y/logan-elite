@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>LOGAN ELITE SYSTEM</title>
+<title>Logan Elite</title>
 
 <style>
 body {
@@ -14,21 +14,23 @@ body {
 }
 
 h1 {
-  text-shadow: 0 0 10px #0ff, 0 0 30px #0ff;
+  text-shadow: 0 0 10px #0ff;
+  font-size: 40px;
 }
 
 .container {
-  margin-top: 80px;
+  margin-top: 100px;
 }
 
 input {
   padding: 12px;
-  margin: 8px;
-  width: 250px;
+  margin: 10px;
+  width: 260px;
   border: none;
   border-radius: 5px;
   background: #111;
   color: #0ff;
+  font-size: 18px;
 }
 
 button {
@@ -40,150 +42,86 @@ button {
   color: black;
   font-weight: bold;
   cursor: pointer;
+  font-size: 18px;
 }
 
 button:hover {
   background: #00cccc;
-}
-
-#dashboard, #adminPanel {
-  display: none;
 }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div id="authPage" class="container">
-  <h1>LOGAN ELITE 🔐</h1>
+<div class="container">
+  <h1>LOGAN ELITE 🚀</h1>
 
-  <input type="email" id="email" placeholder="Email"><br>
-  <input type="password" id="password" placeholder="Password"><br>
+  <input type="email" id="email" placeholder="Enter email"><br>
+  <input type="password" id="password" placeholder="Enter password"><br>
 
   <button onclick="signup()">Sign Up</button>
   <button onclick="login()">Login</button>
 
   <br><br>
 
-  <a href="https://wa.me/231887935222?text=Hello%20Logan%2C%20I%20just%20joined%20your%20system" target="_blank">
-    <button>Contact Admin</button>
+  <a href="https://wa.me/231887935222?text=Hello%20Logan" target="_blank">
+    <button>Contact Me</button>
   </a>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="container">
-  <h1>WELCOME 🚀</h1>
-  <p id="userEmail"></p>
+<!-- FIREBASE (WORKING VERSION) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
-  <button onclick="showAdmin()">Admin Panel</button>
-  <button onclick="logout()">Logout</button>
-
-  <br><br>
-
-  <a href="https://wa.me/231887935222" target="_blank">
-    <button>Chat on WhatsApp</button>
-  </a>
-</div>
-
-<!-- ADMIN PANEL -->
-<div id="adminPanel" class="container">
-  <h1>ADMIN PANEL ⚡</h1>
-  <p>Only for Logan</p>
-
-  <button onclick="loadUsers()">Load Users</button>
-  <div id="usersList"></div>
-
-  <br>
-  <button onclick="back()">Back</button>
-</div>
-
-<!-- FIREBASE -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-  getAuth, 
-  createUserWithEmailAndPassword, 
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-const firebaseConfig = {
+<script>
+var firebaseConfig = {
   apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
   authDomain: "logan-elite-2e9c4.firebaseapp.com",
-  projectId: "logan-elite-2e9c4",
-  storageBucket: "logan-elite-2e9c4.appspot.com",
-  messagingSenderId: "801618048367",
-  appId: "1:801618048367:web:c558830f49b11a992de49a"
+  projectId: "logan-elite-2e9c4"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+firebase.initializeApp(firebaseConfig);
+
+var auth = firebase.auth();
+var db = firebase.firestore();
 
 // SIGN UP
-window.signup = async function () {
-  const email = emailInput();
-  const password = passInput();
+function signup() {
+  var email = document.getElementById("email").value;
+  var password = document.getElementById("password").value;
 
-  try {
-    const user = await createUserWithEmailAndPassword(auth, email, password);
-
-    await addDoc(collection(db, "users"), {
-      email: user.user.email,
-      created: new Date().toString()
-    });
-
-    alert("Account created ✅");
-  } catch (err) {
-    alert(err.message);
+  if (!email || !password) {
+    alert("Enter email & password ⚠️");
+    return;
   }
-};
+
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(function() {
+      db.collection("users").add({
+        email: email
+      });
+      alert("Account created ✅");
+    })
+    .catch(function(error) {
+      alert(error.message);
+    });
+}
 
 // LOGIN
-window.login = async function () {
-  try {
-    await signInWithEmailAndPassword(auth, emailInput(), passInput());
-    alert("Login successful 🔥");
-  } catch (err) {
-    alert(err.message);
-  }
-};
+function login() {
+  var email = document.getElementById("email").value;
+  var password = document.getElementById("password").value;
 
-// LOGOUT
-window.logout = function () {
-  signOut(auth);
-};
-
-// AUTO SWITCH
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    showDashboard(user.email);
-  } else {
-    showAuth();
-  }
-});
-
-function showDashboard(email) {
-  document.getElementById("authPage").style.display = "none";
-  document.getElementById("dashboard").style.display = "block";
-  document.getElementById("userEmail").innerText = email;
+  auth.signInWithEmailAndPassword(email, password)
+    .then(function() {
+      alert("Login successful 🔥");
+    })
+    .catch(function(error) {
+      alert(error.message);
+    });
 }
+</script>
 
-function showAuth() {
-  document.getElementById("authPage").style.display = "block";
-  document.getElementById("dashboard").style.display = "none";
-  document.getElementById("adminPanel").style.display = "none";
-}
-
-// ADMIN PANEL
-window.showAdmin = function () {
-  document.getElementById("dashboard").style
+</body>
+</html>
