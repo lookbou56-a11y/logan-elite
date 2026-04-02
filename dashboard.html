@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Dashboard</title>
+  <title>Logan Elite Chat</title>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -15,21 +16,40 @@
       text-align: center;
     }
 
-    h1 { font-size: 35px; }
-
-    #chatBox {
-      width: 90%;
-      height: 200px;
-      overflow-y: scroll;
-      border: 1px solid cyan;
-      margin: 20px auto;
-      padding: 10px;
+    h1 {
+      font-size: 40px;
     }
 
-    input, button {
+    #chat {
+      width: 90%;
+      height: 300px;
+      border: 2px solid cyan;
+      margin: 20px auto;
+      overflow-y: scroll;
       padding: 10px;
-      margin: 5px;
-      font-size: 16px;
+      text-align: left;
+      font-size: 18px;
+    }
+
+    input {
+      width: 60%;
+      padding: 12px;
+      font-size: 18px;
+      margin: 10px;
+      border-radius: 5px;
+    }
+
+    button {
+      padding: 12px 20px;
+      font-size: 18px;
+      background: cyan;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .msg {
+      margin: 5px 0;
     }
   </style>
 </head>
@@ -39,10 +59,10 @@
 <h1>WELCOME 🔥</h1>
 <p id="userEmail"></p>
 
-<div id="chatBox"></div>
+<div id="chat"></div>
 
 <input id="msg" placeholder="Type message...">
-<button onclick="sendMsg()">Send</button>
+<button onclick="sendMessage()">Send</button>
 
 <br><br>
 <button onclick="logout()">Logout</button>
@@ -51,7 +71,7 @@
 var firebaseConfig = {
   apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
   authDomain: "logan-elite-2e9c4.firebaseapp.com",
-  projectId: "logan-elite-2e9c4"
+  projectId: "logan-elite-2e9c4",
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -59,47 +79,57 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
 
-// PROTECT PAGE
+// CHECK USER
 auth.onAuthStateChanged(user => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
+  if (user) {
     document.getElementById("userEmail").innerText = user.email;
     loadMessages();
+  } else {
+    window.location.href = "index.html";
   }
 });
 
 // SEND MESSAGE
-function sendMsg() {
-  let text = document.getElementById("msg").value;
+function sendMessage() {
+  var user = auth.currentUser;
+  var msg = document.getElementById("msg").value;
 
-  db.collection("chat").add({
-    text: text,
-    time: new Date()
+  if (msg.trim() === "") return;
+
+  db.collection("messages").add({
+    text: msg,
+    user: user.email,
+    time: Date.now()
   });
 
   document.getElementById("msg").value = "";
 }
 
-// LOAD CHAT
+// LOAD MESSAGES (REALTIME)
 function loadMessages() {
-  db.collection("chat").orderBy("time")
-  .onSnapshot(snapshot => {
-    let box = document.getElementById("chatBox");
-    box.innerHTML = "";
+  db.collection("messages")
+    .orderBy("time")
+    .onSnapshot(snapshot => {
+      var chat = document.getElementById("chat");
+      chat.innerHTML = "";
 
-    snapshot.forEach(doc => {
-      let msg = doc.data();
-      box.innerHTML += "<p>" + msg.text + "</p>";
+      snapshot.forEach(doc => {
+        var data = doc.data();
+
+        chat.innerHTML += `
+          <div class="msg">
+            <b>${data.user}:</b> ${data.text}
+          </div>
+        `;
+      });
+
+      chat.scrollTop = chat.scrollHeight;
     });
-  });
 }
 
 // LOGOUT
 function logout() {
-  auth.signOut().then(() => {
-    window.location.href = "index.html";
-  });
+  auth.signOut();
 }
 </script>
 
