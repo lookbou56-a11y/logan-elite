@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dashboard</title>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <style>
+    body {
+      background: black;
+      color: cyan;
+      font-family: Arial;
+      text-align: center;
+    }
+
+    h1 { font-size: 35px; }
+
+    #chatBox {
+      width: 90%;
+      height: 200px;
+      overflow-y: scroll;
+      border: 1px solid cyan;
+      margin: 20px auto;
+      padding: 10px;
+    }
+
+    input, button {
+      padding: 10px;
+      margin: 5px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>WELCOME 🔥</h1>
+<p id="userEmail"></p>
+
+<div id="chatBox"></div>
+
+<input id="msg" placeholder="Type message...">
+<button onclick="sendMsg()">Send</button>
+
+<br><br>
+<button onclick="logout()">Logout</button>
+
+<script>
+var firebaseConfig = {
+  apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
+  authDomain: "logan-elite-2e9c4.firebaseapp.com",
+  projectId: "logan-elite-2e9c4"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+var auth = firebase.auth();
+var db = firebase.firestore();
+
+// PROTECT PAGE
+auth.onAuthStateChanged(user => {
+  if (!user) {
+    window.location.href = "index.html";
+  } else {
+    document.getElementById("userEmail").innerText = user.email;
+    loadMessages();
+  }
+});
+
+// SEND MESSAGE
+function sendMsg() {
+  let text = document.getElementById("msg").value;
+
+  db.collection("chat").add({
+    text: text,
+    time: new Date()
+  });
+
+  document.getElementById("msg").value = "";
+}
+
+// LOAD CHAT
+function loadMessages() {
+  db.collection("chat").orderBy("time")
+  .onSnapshot(snapshot => {
+    let box = document.getElementById("chatBox");
+    box.innerHTML = "";
+
+    snapshot.forEach(doc => {
+      let msg = doc.data();
+      box.innerHTML += "<p>" + msg.text + "</p>";
+    });
+  });
+}
+
+// LOGOUT
+function logout() {
+  auth.signOut().then(() => {
+    window.location.href = "index.html";
+  });
+}
+</script>
+
+</body>
+</html>
