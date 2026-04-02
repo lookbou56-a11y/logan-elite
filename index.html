@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LOGAN ELITE</title>
+  <title>LOGAN ELITE CHAT</title>
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -10,54 +11,89 @@
   <style>
     body {
       background: black;
-      color: white;
-      text-align: center;
+      color: cyan;
       font-family: Arial;
-      margin-top: 80px;
+      text-align: center;
     }
 
     h1 {
       font-size: 40px;
-      color: cyan;
-      text-shadow: 0 0 15px cyan;
+      margin-top: 20px;
+    }
+
+    #chatBox {
+      width: 90%;
+      height: 400px;
+      margin: 20px auto;
+      border: 2px solid cyan;
+      overflow-y: scroll;
+      padding: 10px;
+      text-align: left;
+      font-size: 18px;
+    }
+
+    .msg {
+      margin: 10px 0;
+    }
+
+    .me {
+      color: lime;
+      text-align: right;
+    }
+
+    .other {
+      color: white;
+      text-align: left;
     }
 
     input {
-      width: 280px;
-      padding: 14px;
-      margin: 10px;
+      padding: 12px;
       font-size: 18px;
-      border-radius: 6px;
-      border: none;
+      width: 60%;
     }
 
     button {
-      padding: 14px 25px;
-      margin: 10px;
+      padding: 12px;
       font-size: 18px;
       background: cyan;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
+      margin: 5px;
+    }
+
+    #auth {
+      margin-top: 50px;
     }
   </style>
 </head>
 
 <body>
 
-<h1>LOGAN ELITE 🔐</h1>
+<h1>🔥 LOGAN ELITE CHAT</h1>
 
-<input id="email" type="email" placeholder="Email"><br>
-<input id="password" type="password" placeholder="Password"><br>
+<div id="auth">
+  <input type="email" id="email" placeholder="Email"><br><br>
+  <input type="password" id="password" placeholder="Password"><br><br>
 
-<button onclick="signup()">Sign Up</button>
-<button onclick="login()">Login</button>
+  <button onclick="signup()">Sign Up</button>
+  <button onclick="login()">Login</button>
+</div>
+
+<div id="chat" style="display:none;">
+  <h2 id="userEmail"></h2>
+
+  <div id="chatBox"></div>
+
+  <input type="text" id="message" placeholder="Type message...">
+  <button onclick="sendMessage()">Send</button><br><br>
+
+  <button onclick="logout()">Logout</button>
+</div>
 
 <script>
 var firebaseConfig = {
   apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
   authDomain: "logan-elite-2e9c4.firebaseapp.com",
-  projectId: "logan-elite-2e9c4"
+  projectId: "logan-elite-2e9c4",
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -65,39 +101,94 @@ firebase.initializeApp(firebaseConfig);
 var auth = firebase.auth();
 var db = firebase.firestore();
 
-// SIGN UP
+
+// SIGNUP
 function signup() {
-  let email = emailInput();
-  let password = passwordInput();
+  var email = email.value;
+  var password = password.value;
 
   auth.createUserWithEmailAndPassword(email, password)
-  .then((userCred) => {
-    return db.collection("users").doc(userCred.user.uid).set({
-      email: email,
-      createdAt: new Date()
-    });
-  })
-  .then(() => {
-    window.location.href = "dashboard.html";
-  })
-  .catch(err => alert(err.message));
+    .then(() => alert("Account created ✅"))
+    .catch(e => alert(e.message));
 }
+
 
 // LOGIN
 function login() {
-  auth.signInWithEmailAndPassword(emailInput(), passwordInput())
-  .then(() => {
-    window.location.href = "dashboard.html";
-  })
-  .catch(err => alert(err.message));
+  var email = email.value;
+  var password = password.value;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => {})
+    .catch(e => alert(e.message));
 }
 
-function emailInput() {
-  return document.getElementById("email").value;
+
+// LOGOUT
+function logout() {
+  auth.signOut();
 }
 
-function passwordInput() {
-  return document.getElementById("password").value;
+
+// AUTH STATE
+auth.onAuthStateChanged(user => {
+  if (user) {
+    document.getElementById("auth").style.display = "none";
+    document.getElementById("chat").style.display = "block";
+    document.getElementById("userEmail").innerText = user.email;
+
+    loadMessages();
+  } else {
+    document.getElementById("auth").style.display = "block";
+    document.getElementById("chat").style.display = "none";
+  }
+});
+
+
+// SEND MESSAGE
+function sendMessage() {
+  var msg = document.getElementById("message").value;
+
+  if (msg === "") return;
+
+  db.collection("messages").add({
+    text: msg,
+    user: auth.currentUser.email,
+    time: Date.now()
+  });
+
+  document.getElementById("message").value = "";
+}
+
+
+// LOAD REALTIME MESSAGES
+function loadMessages() {
+  db.collection("messages")
+    .orderBy("time")
+    .onSnapshot(snapshot => {
+
+      var chatBox = document.getElementById("chatBox");
+      chatBox.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        var data = doc.data();
+
+        var div = document.createElement("div");
+        div.classList.add("msg");
+
+        if (data.user === auth.currentUser.email) {
+          div.classList.add("me");
+        } else {
+          div.classList.add("other");
+        }
+
+        div.innerHTML = "<b>" + data.user + ":</b> " + data.text;
+
+        chatBox.appendChild(div);
+      });
+
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
 }
 </script>
 
