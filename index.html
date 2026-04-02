@@ -1,186 +1,257 @@
+
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LOGAN ELITE</title>
+<title>LOGAN SOCIAL</title>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
-  <style>
-    body {
-      background: black;
-      color: #00ffff;
-      font-family: Arial;
-      text-align: center;
-      margin: 0;
-    }
+<style>
+body { margin:0; font-family:Arial; background:#0a0a0a; color:white; }
 
-    h1 {
-      font-size: 40px;
-      margin-top: 30px;
-    }
+.container { display:flex; height:100vh; }
 
-    input {
-      padding: 15px;
-      width: 80%;
-      margin: 10px;
-      font-size: 18px;
-      border-radius: 10px;
-      border: none;
-    }
+/* USERS */
+.sidebar {
+  width:30%;
+  border-right:1px solid cyan;
+  overflow-y:auto;
+}
 
-    button {
-      padding: 15px 25px;
-      margin: 10px;
-      font-size: 18px;
-      border: none;
-      border-radius: 10px;
-      background: #00ffff;
-      color: black;
-      font-weight: bold;
-    }
+.user {
+  padding:15px;
+  border-bottom:1px solid #222;
+  cursor:pointer;
+}
 
-    #chatBox {
-      width: 90%;
-      height: 300px;
-      border: 2px solid #00ffff;
-      margin: 20px auto;
-      overflow-y: scroll;
-      padding: 10px;
-      text-align: left;
-    }
+.user:hover { background:#111; }
 
-    .msg {
-      margin: 10px;
-      padding: 10px;
-      background: #111;
-      border-radius: 10px;
-    }
+/* CHAT */
+.chatArea {
+  width:70%;
+  display:flex;
+  flex-direction:column;
+}
 
-    #app, #chatPage {
-      display: none;
-    }
-  </style>
+#chatBox {
+  flex:1;
+  overflow-y:auto;
+  padding:10px;
+}
+
+.msg {
+  margin:5px;
+  padding:10px;
+  border-radius:10px;
+  max-width:70%;
+}
+
+.me { background:cyan; color:black; margin-left:auto; }
+.other { background:#222; }
+
+input { padding:10px; margin:5px; width:80%; }
+button { padding:10px; background:cyan; border:none; }
+
+/* STATUS */
+#statusBox { display:flex; overflow-x:auto; padding:10px; border-bottom:1px solid cyan; }
+.status { margin:5px; padding:10px; background:#222; border-radius:10px; }
+
+#loginPage { text-align:center; margin-top:50px; }
+#app { display:none; }
+</style>
 </head>
 
 <body>
 
-<h1>LOGAN ELITE 🔐</h1>
-
-<!-- LOGIN PAGE -->
-<div id="app">
-  <input id="email" placeholder="Email"><br>
-  <input id="password" type="password" placeholder="Password"><br>
-
-  <button onclick="signup()">Sign Up</button>
-  <button onclick="login()">Login</button>
+<div id="loginPage">
+<h2>LOGAN SOCIAL 🔐</h2>
+<input id="email" placeholder="Email"><br>
+<input id="password" type="password" placeholder="Password"><br>
+<button onclick="signup()">Sign Up</button>
+<button onclick="login()">Login</button>
 </div>
 
-<!-- CHAT PAGE -->
-<div id="chatPage">
-  <h2 id="userEmail"></h2>
+<div id="app">
 
-  <div id="chatBox"></div>
+<!-- STATUS -->
+<div id="statusBox"></div>
+<input id="statusText" placeholder="Status...">
+<input type="file" id="statusImg">
+<button onclick="postStatus()">Post</button>
 
-  <input id="message" placeholder="Type message...">
-  <button onclick="sendMessage()">Send</button><br>
+<div class="container">
 
-  <button onclick="logout()">Logout</button>
+<!-- USERS -->
+<div class="sidebar">
+<h3>Users</h3>
+<div id="usersList"></div>
+</div>
+
+<!-- CHAT -->
+<div class="chatArea">
+<h3 id="chatWith">Select a user</h3>
+
+<div id="chatBox"></div>
+
+<input id="msg" placeholder="Message...">
+<button onclick="sendMsg()">Send</button>
+
+<button onclick="logout()">Logout</button>
+</div>
+
+</div>
+
 </div>
 
 <script>
-  // FIREBASE CONFIG
-  var firebaseConfig = {
-    apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
-    authDomain: "logan-elite-2e9c4.firebaseapp.com",
-    projectId: "logan-elite-2e9c4",
-  };
+var firebaseConfig = {
+  apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
+  authDomain: "logan-elite-2e9c4.firebaseapp.com",
+  projectId: "logan-elite-2e9c4",
+  storageBucket: "logan-elite-2e9c4.appspot.com"
+};
 
-  firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 
-  var auth = firebase.auth();
-  var db = firebase.firestore();
+var auth = firebase.auth();
+var db = firebase.firestore();
+var storage = firebase.storage();
 
-  // SHOW LOGIN PAGE FIRST
-  document.getElementById("app").style.display = "block";
+let currentUser, chatUser;
 
-  // SIGNUP
-  function signup() {
-    var email = document.getElementById("email").value;
-    var password = document.getElementById("password").value;
+// AUTH
+auth.onAuthStateChanged(user=>{
+  if(user){
+    currentUser=user;
+    loginPage.style.display="none";
+    app.style.display="block";
 
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => alert("Account created ✅"))
-      .catch(err => alert(err.message));
-  }
-
-  // LOGIN
-  function login() {
-    var email = document.getElementById("email").value;
-    var password = document.getElementById("password").value;
-
-    auth.signInWithEmailAndPassword(email, password)
-      .catch(err => alert(err.message));
-  }
-
-  // LOGOUT
-  function logout() {
-    auth.signOut();
-  }
-
-  // AUTH STATE
-  auth.onAuthStateChanged(user => {
-    if (user) {
-      document.getElementById("app").style.display = "none";
-      document.getElementById("chatPage").style.display = "block";
-      document.getElementById("userEmail").innerText = user.email;
-
-      loadMessages();
-    } else {
-      document.getElementById("app").style.display = "block";
-      document.getElementById("chatPage").style.display = "none";
-    }
-  });
-
-  // SEND MESSAGE
-  function sendMessage() {
-    var msg = document.getElementById("message").value;
-    var user = auth.currentUser;
-
-    if (!msg) return;
-
-    db.collection("messages").add({
-      text: msg,
-      user: user.email,
-      time: Date.now()
+    db.collection("users").doc(user.uid).set({
+      email:user.email,
+      online:true
     });
 
-    document.getElementById("message").value = "";
+    loadUsers();
+    loadStatus();
+  } else {
+    loginPage.style.display="block";
+    app.style.display="none";
   }
+});
 
-  // LOAD MESSAGES (REALTIME)
-  function loadMessages() {
-    db.collection("messages")
-      .orderBy("time")
-      .onSnapshot(snapshot => {
-        var chat = document.getElementById("chatBox");
-        chat.innerHTML = "";
+// SIGNUP / LOGIN
+function signup(){ auth.createUserWithEmailAndPassword(email.value,password.value); }
+function login(){ auth.signInWithEmailAndPassword(email.value,password.value); }
 
-        snapshot.forEach(doc => {
-          var data = doc.data();
+// LOGOUT
+function logout(){
+  db.collection("users").doc(currentUser.uid).update({online:false});
+  auth.signOut();
+}
 
-          chat.innerHTML += `
-            <div class="msg">
-              <b>${data.user}:</b><br>${data.text}
-            </div>
-          `;
-        });
+// USERS LIST
+function loadUsers(){
+  db.collection("users").onSnapshot(s=>{
+    usersList.innerHTML="";
+    s.forEach(doc=>{
+      let u=doc.data();
+      if(doc.id!==currentUser.uid){
+        usersList.innerHTML+=`
+        <div class="user" onclick="openChat('${doc.id}','${u.email}')">
+        🟢 ${u.email}
+        </div>`;
+      }
+    });
+  });
+}
 
-        chat.scrollTop = chat.scrollHeight;
-      });
-  }
+// OPEN CHAT
+function openChat(uid,email){
+  chatUser=uid;
+  chatWith.innerText="Chat with "+email;
+  loadMessages();
+}
+
+// SEND DM
+function sendMsg(){
+  if(!chatUser || !msg.value) return;
+
+  db.collection("privateMessages").add({
+    text:msg.value,
+    from:currentUser.uid,
+    to:chatUser,
+    time:Date.now()
+  });
+
+  msg.value="";
+}
+
+// LOAD DM
+function loadMessages(){
+  db.collection("privateMessages").orderBy("time")
+  .onSnapshot(s=>{
+    chatBox.innerHTML="";
+    s.forEach(doc=>{
+      let d=doc.data();
+
+      if(
+        (d.from===currentUser.uid && d.to===chatUser) ||
+        (d.from===chatUser && d.to===currentUser.uid)
+      ){
+        chatBox.innerHTML+=`
+        <div class="msg ${d.from===currentUser.uid?'me':'other'}">
+        ${d.text}
+        </div>`;
+      }
+    });
+    chatBox.scrollTop=chatBox.scrollHeight;
+  });
+}
+
+// STATUS IMAGE
+function postStatus(){
+  let file=statusImg.files[0];
+
+  if(file){
+    let ref=storage.ref("status/"+Date.now());
+    ref.put(file).then(()=>{
+      ref.getDownloadURL().then(url=>saveStatus(url));
+    });
+  } else saveStatus("");
+}
+
+function saveStatus(img){
+  db.collection("status").add({
+    text:statusText.value,
+    img:img,
+    user:currentUser.email,
+    time:Date.now()
+  });
+  statusText.value="";
+}
+
+// LOAD STATUS
+function loadStatus(){
+  db.collection("status").onSnapshot(s=>{
+    statusBox.innerHTML="";
+    let now=Date.now();
+
+    s.forEach(doc=>{
+      let d=doc.data();
+      if(now-d.time<86400000){
+        statusBox.innerHTML+=`
+        <div class="status">
+        <b>${d.user}</b><br>
+        ${d.text}<br>
+        ${d.img?'<img src="'+d.img+'" width="80">':''}
+        </div>`;
+      }
+    });
+  });
+}
 </script>
 
 </body>
