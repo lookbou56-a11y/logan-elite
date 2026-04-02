@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>LOGAN ELITE CHAT</title>
+  <title>LOGAN ELITE</title>
 
   <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -11,185 +11,176 @@
   <style>
     body {
       background: black;
-      color: cyan;
+      color: #00ffff;
       font-family: Arial;
       text-align: center;
+      margin: 0;
     }
 
     h1 {
       font-size: 40px;
-      margin-top: 20px;
+      margin-top: 30px;
+    }
+
+    input {
+      padding: 15px;
+      width: 80%;
+      margin: 10px;
+      font-size: 18px;
+      border-radius: 10px;
+      border: none;
+    }
+
+    button {
+      padding: 15px 25px;
+      margin: 10px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #00ffff;
+      color: black;
+      font-weight: bold;
     }
 
     #chatBox {
       width: 90%;
-      height: 400px;
+      height: 300px;
+      border: 2px solid #00ffff;
       margin: 20px auto;
-      border: 2px solid cyan;
       overflow-y: scroll;
       padding: 10px;
       text-align: left;
-      font-size: 18px;
     }
 
     .msg {
-      margin: 10px 0;
+      margin: 10px;
+      padding: 10px;
+      background: #111;
+      border-radius: 10px;
     }
 
-    .me {
-      color: lime;
-      text-align: right;
-    }
-
-    .other {
-      color: white;
-      text-align: left;
-    }
-
-    input {
-      padding: 12px;
-      font-size: 18px;
-      width: 60%;
-    }
-
-    button {
-      padding: 12px;
-      font-size: 18px;
-      background: cyan;
-      border: none;
-      margin: 5px;
-    }
-
-    #auth {
-      margin-top: 50px;
+    #app, #chatPage {
+      display: none;
     }
   </style>
 </head>
 
 <body>
 
-<h1>🔥 LOGAN ELITE CHAT</h1>
+<h1>LOGAN ELITE 🔐</h1>
 
-<div id="auth">
-  <input type="email" id="email" placeholder="Email"><br><br>
-  <input type="password" id="password" placeholder="Password"><br><br>
+<!-- LOGIN PAGE -->
+<div id="app">
+  <input id="email" placeholder="Email"><br>
+  <input id="password" type="password" placeholder="Password"><br>
 
   <button onclick="signup()">Sign Up</button>
   <button onclick="login()">Login</button>
 </div>
 
-<div id="chat" style="display:none;">
+<!-- CHAT PAGE -->
+<div id="chatPage">
   <h2 id="userEmail"></h2>
 
   <div id="chatBox"></div>
 
-  <input type="text" id="message" placeholder="Type message...">
-  <button onclick="sendMessage()">Send</button><br><br>
+  <input id="message" placeholder="Type message...">
+  <button onclick="sendMessage()">Send</button><br>
 
   <button onclick="logout()">Logout</button>
 </div>
 
 <script>
-var firebaseConfig = {
-  apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
-  authDomain: "logan-elite-2e9c4.firebaseapp.com",
-  projectId: "logan-elite-2e9c4",
-};
+  // FIREBASE CONFIG
+  var firebaseConfig = {
+    apiKey: "AIzaSyDXJGWNMuTu7Oob8dSdZj5QBEP4ghvkQ8A",
+    authDomain: "logan-elite-2e9c4.firebaseapp.com",
+    projectId: "logan-elite-2e9c4",
+  };
 
-firebase.initializeApp(firebaseConfig);
+  firebase.initializeApp(firebaseConfig);
 
-var auth = firebase.auth();
-var db = firebase.firestore();
+  var auth = firebase.auth();
+  var db = firebase.firestore();
 
+  // SHOW LOGIN PAGE FIRST
+  document.getElementById("app").style.display = "block";
 
-// SIGNUP
-function signup() {
-  var email = email.value;
-  var password = password.value;
+  // SIGNUP
+  function signup() {
+    var email = document.getElementById("email").value;
+    var password = document.getElementById("password").value;
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(() => alert("Account created ✅"))
-    .catch(e => alert(e.message));
-}
-
-
-// LOGIN
-function login() {
-  var email = email.value;
-  var password = password.value;
-
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {})
-    .catch(e => alert(e.message));
-}
-
-
-// LOGOUT
-function logout() {
-  auth.signOut();
-}
-
-
-// AUTH STATE
-auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("auth").style.display = "none";
-    document.getElementById("chat").style.display = "block";
-    document.getElementById("userEmail").innerText = user.email;
-
-    loadMessages();
-  } else {
-    document.getElementById("auth").style.display = "block";
-    document.getElementById("chat").style.display = "none";
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => alert("Account created ✅"))
+      .catch(err => alert(err.message));
   }
-});
 
+  // LOGIN
+  function login() {
+    var email = document.getElementById("email").value;
+    var password = document.getElementById("password").value;
 
-// SEND MESSAGE
-function sendMessage() {
-  var msg = document.getElementById("message").value;
+    auth.signInWithEmailAndPassword(email, password)
+      .catch(err => alert(err.message));
+  }
 
-  if (msg === "") return;
+  // LOGOUT
+  function logout() {
+    auth.signOut();
+  }
 
-  db.collection("messages").add({
-    text: msg,
-    user: auth.currentUser.email,
-    time: Date.now()
+  // AUTH STATE
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      document.getElementById("app").style.display = "none";
+      document.getElementById("chatPage").style.display = "block";
+      document.getElementById("userEmail").innerText = user.email;
+
+      loadMessages();
+    } else {
+      document.getElementById("app").style.display = "block";
+      document.getElementById("chatPage").style.display = "none";
+    }
   });
 
-  document.getElementById("message").value = "";
-}
+  // SEND MESSAGE
+  function sendMessage() {
+    var msg = document.getElementById("message").value;
+    var user = auth.currentUser;
 
+    if (!msg) return;
 
-// LOAD REALTIME MESSAGES
-function loadMessages() {
-  db.collection("messages")
-    .orderBy("time")
-    .onSnapshot(snapshot => {
-
-      var chatBox = document.getElementById("chatBox");
-      chatBox.innerHTML = "";
-
-      snapshot.forEach(doc => {
-        var data = doc.data();
-
-        var div = document.createElement("div");
-        div.classList.add("msg");
-
-        if (data.user === auth.currentUser.email) {
-          div.classList.add("me");
-        } else {
-          div.classList.add("other");
-        }
-
-        div.innerHTML = "<b>" + data.user + ":</b> " + data.text;
-
-        chatBox.appendChild(div);
-      });
-
-      chatBox.scrollTop = chatBox.scrollHeight;
+    db.collection("messages").add({
+      text: msg,
+      user: user.email,
+      time: Date.now()
     });
-}
+
+    document.getElementById("message").value = "";
+  }
+
+  // LOAD MESSAGES (REALTIME)
+  function loadMessages() {
+    db.collection("messages")
+      .orderBy("time")
+      .onSnapshot(snapshot => {
+        var chat = document.getElementById("chatBox");
+        chat.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          var data = doc.data();
+
+          chat.innerHTML += `
+            <div class="msg">
+              <b>${data.user}:</b><br>${data.text}
+            </div>
+          `;
+        });
+
+        chat.scrollTop = chat.scrollHeight;
+      });
+  }
 </script>
 
 </body>
