@@ -1,164 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LOGANπ SYSTEM</title>
-
-<style>
-body {
-    margin: 0;
-    overflow: hidden;
-    background: black;
-    font-family: monospace;
-    color: #00ffcc;
-    text-align: center;
-}
-
-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    z-index: -1;
-}
-
-#main {
-    display: none;
-    padding-top: 100px;
-}
-
-h1 {
-    font-size: 45px;
-    letter-spacing: 3px;
-}
-
-button {
-    padding: 12px 25px;
-    margin: 10px;
-    border: 1px solid #00ffcc;
-    background: transparent;
-    color: #00ffcc;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-button:hover {
-    background: #00ffcc;
-    color: black;
-}
-
-#secret {
-    display: none;
-    margin-top: 30px;
-}
-
-#countdown {
-    margin-top: 15px;
-    color: red;
-    font-size: 18px;
-}
-
-#loading {
-    position: fixed;
-    width: 100%;
-    height: 100%;
-    background: black;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 22px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logan Elite</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: black;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      font-size: 40px;
+      margin-top: 50px;
+      color: cyan;
+    }
+    p {
+      font-size: 18px;
+      opacity: 0.8;
+    }
+    .btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: cyan;
+      color: black;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+  </style>
 </head>
-
 <body>
 
-<canvas id="matrix"></canvas>
+  <h1>LOGAN ELITE 🚀</h1>
+  <p>Elite digital system • Built in silence</p>
 
-<div id="loading">CONNECTING TO LOGANπ...</div>
-
-<div id="main">
-    <h1>LOGANπ</h1>
-    <p>Elite Access Only</p>
-
-    <button onclick="enterSystem()">REQUEST ACCESS</button><br>
-    <button onclick="openWhatsApp()">CONTACT ADMIN</button>
-
-    <div id="countdown">Access closes in: 30</div>
-
-    <div id="secret">
-        🔓 ACCESS GRANTED <br><br>
-        This system is limited. Only selected users allowed. <br><br>
-        Message now to secure your slot 👇
-        <br><br>
-        <button onclick="openWhatsApp()">JOIN NOW</button>
-    </div>
-</div>
-
-<script>
-// MATRIX BACKGROUND
-const canvas = document.getElementById("matrix");
-const ctx = canvas.getContext("2d");
-
-canvas.height = window.innerHeight;
-canvas.width = window.innerWidth;
-
-const letters = "01LOGANπ";
-const fontSize = 14;
-const columns = canvas.width / fontSize;
-
-const drops = [];
-for(let x = 0; x < columns; x++) drops[x] = 1;
-
-function draw() {
-    ctx.fillStyle = "rgba(0,0,0,0.05)";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = "#0f0";
-    ctx.font = fontSize + "px monospace";
-
-    for(let i = 0; i < drops.length; i++) {
-        const text = letters[Math.floor(Math.random()*letters.length)];
-        ctx.fillText(text, i*fontSize, drops[i]*fontSize);
-
-        if(drops[i]*fontSize > canvas.height && Math.random() > 0.975)
-            drops[i] = 0;
-
-        drops[i]++;
-    }
-}
-setInterval(draw, 35);
-
-// LOADING SCREEN
-setTimeout(() => {
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("main").style.display = "block";
-}, 2000);
-
-// COUNTDOWN TIMER
-let time = 30;
-setInterval(() => {
-    time--;
-    document.getElementById("countdown").innerText = "Access closes in: " + time;
-    if(time <= 0) time = 30;
-}, 1000);
-
-// PASSWORD SYSTEM
-function enterSystem() {
-    let pass = prompt("Enter Access Code:");
-
-    if(pass === "logan") {
-        document.getElementById("secret").style.display = "block";
-    } else {
-        alert("Access Denied ❌");
-    }
-}
-
-// SMART WHATSAPP LINK
-function openWhatsApp() {
-    window.open("https://wa.me/231887935222?text=I%20just%20found%20your%20system%20and%20I%20want%20access", "_blank");
-}
-</script>
+  <a class="btn" href="https://wa.me/YOURNUMBER">Contact Me</a>
 
 </body>
 </html>
